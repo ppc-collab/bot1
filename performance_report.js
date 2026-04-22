@@ -13,9 +13,9 @@
 */
 
 var config = {
-  spreadsheet_url: 'https://docs.google.com/spreadsheets/d/YOUR_SPREADSHEET_ID/edit',
+  spreadsheet_url: 'https://docs.google.com/spreadsheets/d/https://docs.google.com/spreadsheets/d/1yeZSE5UdzrNtGKPXPgSjKevb8WKW3j8a7495caOWKiY/edit?gid=0#gid=0/edit',
   accountsSheetName: 'Accounts',
-  botToken: 'YOUR_BOT_TOKEN',
+  botToken: 'bot8106252010:AAFVw6Df2txnIIL5gw7ch11KJ0wC9I3HhJ0',
   testMode: false
 };
 
