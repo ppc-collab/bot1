@@ -70,10 +70,10 @@ function buildDailyReport() {
   var p7Start   = new Date(today); p7Start.setDate(today.getDate() - 14);
   var p7End     = new Date(today); p7End.setDate(today.getDate() - 8);
 
-  var yestStr   = Utilities.formatDate(yestDate, tz, 'yyyyMMdd');
-  var dbStr     = Utilities.formatDate(dbDate, tz, 'yyyyMMdd');
-  var p7StartStr= Utilities.formatDate(p7Start, tz, 'yyyyMMdd');
-  var p7EndStr  = Utilities.formatDate(p7End, tz, 'yyyyMMdd');
+  var yestStr   = Utilities.formatDate(yestDate, tz, 'yyyy-MM-dd');
+  var dbStr     = Utilities.formatDate(dbDate, tz, 'yyyy-MM-dd');
+  var p7StartStr= Utilities.formatDate(p7Start, tz, 'yyyy-MM-dd');
+  var p7EndStr  = Utilities.formatDate(p7End, tz, 'yyyy-MM-dd');
 
   var yest      = getStatsByRange(yestStr, yestStr);
   var dayBefore = getStatsByRange(dbStr, dbStr);
@@ -225,27 +225,39 @@ function buildConclusions(yest, db, last7, prev7, thisMonth, lastMonth, currency
 // ─── STATS FETCHING ───────────────────────────────────────────────────────────
 
 function getStatsByPeriod(dateRange) {
-  var s = AdsApp.currentAccount().getStatsFor(dateRange);
-  return extractStats(s);
+  var q = 'SELECT metrics.cost_micros, metrics.clicks, metrics.impressions, metrics.conversions '
+    + 'FROM campaign '
+    + 'WHERE segments.date DURING ' + dateRange
+    + ' AND campaign.status != "REMOVED"';
+  return runStatsQuery(q);
 }
 
 function getStatsByRange(startDate, endDate) {
-  var s = AdsApp.currentAccount().getStatsFor(startDate, endDate);
-  return extractStats(s);
+  var q = 'SELECT metrics.cost_micros, metrics.clicks, metrics.impressions, metrics.conversions '
+    + 'FROM campaign '
+    + "WHERE segments.date BETWEEN '" + startDate + "' AND '" + endDate + "'"
+    + ' AND campaign.status != "REMOVED"';
+  return runStatsQuery(q);
 }
 
-function extractStats(s) {
-  var cost        = s.getCost()        || 0;
-  var clicks      = s.getClicks()      || 0;
-  var impressions = s.getImpressions() || 0;
-  var conversions = s.getConversions() || 0;
-
-  var ctr    = impressions > 0 ? (clicks / impressions) * 100 : 0;
-  var avgCpc = clicks > 0      ? cost / clicks               : 0;
-  var cpa    = conversions > 0 ? cost / conversions           : 0;
-
-  return { cost: cost, clicks: clicks, impressions: impressions,
-           conversions: conversions, ctr: ctr, avgCpc: avgCpc, cpa: cpa };
+function runStatsQuery(q) {
+  var totals = { cost: 0, clicks: 0, impressions: 0, conversions: 0 };
+  try {
+    var report = AdsApp.search(q);
+    while (report.hasNext()) {
+      var r = report.next();
+      totals.cost        += (r.metrics.costMicros    || 0) / 1e6;
+      totals.clicks      += parseInt(r.metrics.clicks      || 0);
+      totals.impressions += parseInt(r.metrics.impressions || 0);
+      totals.conversions += parseFloat(r.metrics.conversions || 0);
+    }
+  } catch (e) {
+    Logger.log('Помилка запиту статистики: ' + e.message + '\nЗапит: ' + q);
+  }
+  totals.ctr    = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
+  totals.avgCpc = totals.clicks      > 0 ? totals.cost / totals.clicks               : 0;
+  totals.cpa    = totals.conversions > 0 ? totals.cost / totals.conversions           : 0;
+  return totals;
 }
 
 // ─── FORMATTING ───────────────────────────────────────────────────────────────
@@ -315,6 +327,37 @@ function sendTelegramMessage(chatId, message) {
   var options = { method: 'post', contentType: 'application/json',
                   payload: JSON.stringify(payload) };
   UrlFetchApp.fetch(url, options);
+}
+
+// ─── DEBUG / TEST FUNCTIONS ───────────────────────────────────────────────────
+
+// Крок 1: перевірити що Telegram-бот живий і chat_id правильний
+function testTelegram() {
+  var CHAT_ID = 'ВСТАВТЕ_ВАШ_CHAT_ID';
+  sendTelegramMessage(CHAT_ID, '✅ З\'єднання з Telegram працює! Бот активний.');
+  Logger.log('Повідомлення відправлено до chat_id: ' + CHAT_ID);
+}
+
+// Крок 2: повний тест звіту для конкретного акаунту (без таблиці)
+function testReport() {
+  var ACCOUNT_ID = 'ВСТАВТЕ_ID_АКАУНТУ'; // формат: 123-456-7890
+  var CHAT_ID    = 'ВСТАВТЕ_ВАШ_CHAT_ID';
+
+  Logger.log('Шукаємо акаунт: ' + ACCOUNT_ID);
+  var account = findAccountRecursively(ACCOUNT_ID);
+
+  if (!account) {
+    Logger.log('❌ Акаунт не знайдено. Перевірте ID акаунту та доступ MCC.');
+    return;
+  }
+
+  Logger.log('✅ Акаунт знайдено: ' + account.getName());
+  MccApp.select(account);
+
+  var message = buildDailyReport();
+  Logger.log('=== ТЕКСТ ПОВІДОМЛЕННЯ ===\n' + message);
+  sendTelegramMessage(CHAT_ID, message);
+  Logger.log('✅ Повідомлення відправлено!');
 }
 
 // ─── ACCOUNT LOOKUP ───────────────────────────────────────────────────────────
