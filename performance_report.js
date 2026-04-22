@@ -13,9 +13,9 @@
 */
 
 var config = {
-  spreadsheet_url: 'https://docs.google.com/spreadsheets/d/https://docs.google.com/spreadsheets/d/1yeZSE5UdzrNtGKPXPgSjKevb8WKW3j8a7495caOWKiY/edit?gid=0#gid=0/edit',
+  spreadsheet_url: 'https://docs.google.com/spreadsheets/d/1yeZSE5UdzrNtGKPXPgSjKevb8WKW3j8a7495caOWKiY/edit?gid=0#gid=0',
   accountsSheetName: 'Accounts',
-  botToken: 'bot8106252010:AAFVw6Df2txnIIL5gw7ch11KJ0wC9I3HhJ0',
+  botToken: '8106252010:AAFVw6Df2txnIIL5gw7ch11KJ0wC9I3HhJ0',
   testMode: false
 };
 
