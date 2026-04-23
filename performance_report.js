@@ -311,8 +311,27 @@ function sendTelegramMessage(chatId, message) {
   var url     = 'https://api.telegram.org/bot' + config.botToken + '/sendMessage';
   var payload = { chat_id: chatId, text: message, parse_mode: 'HTML' };
   var options = { method: 'post', contentType: 'application/json',
-                  payload: JSON.stringify(payload) };
-  UrlFetchApp.fetch(url, options);
+                  payload: JSON.stringify(payload), muteHttpExceptions: true };
+
+  var response = UrlFetchApp.fetch(url, options);
+  var code     = response.getResponseCode();
+
+  if (code === 200) return;
+
+  var body = JSON.parse(response.getContentText());
+
+  // Група оновилась до супергрупи — новий chat_id приходить у відповіді
+  if (code === 400 && body.parameters && body.parameters.migrate_to_chat_id) {
+    var newChatId = body.parameters.migrate_to_chat_id;
+    Logger.log('⚠️ Chat мігрував до супергрупи. Старий ID: ' + chatId + ' → Новий ID: ' + newChatId + '. Оновіть таблицю!');
+
+    payload.chat_id = newChatId;
+    options.payload  = JSON.stringify(payload);
+    UrlFetchApp.fetch(url, options);
+    return;
+  }
+
+  throw new Error('Telegram API ' + code + ': ' + response.getContentText());
 }
 
 // ─── ACCOUNT LOOKUP ───────────────────────────────────────────────────────────
