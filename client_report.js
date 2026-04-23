@@ -18,6 +18,11 @@ var config = {
 
 var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
+var CURRENCY_SYMBOLS = {
+  'UAH': '₴', 'EUR': '€', 'USD': '$', 'GBP': '£',
+  'PLN': 'zł', 'CZK': 'Kč', 'HUF': 'Ft', 'RON': 'lei'
+};
+
 // ─── ENTRY POINT ──────────────────────────────────────────────────────────────
 
 function main() {
@@ -66,7 +71,7 @@ function buildClientReport() {
   var name = acc.getName();
   var curr = acc.getCurrencyCode();
   var tz   = acc.getTimeZone();
-  var sym  = curr === 'UAH' ? '₴' : curr;
+  var sym  = CURRENCY_SYMBOLS[curr] || (curr + ' ');
 
   var today    = new Date();
   var yestDate = new Date(today); yestDate.setDate(today.getDate() - 1);
@@ -76,9 +81,8 @@ function buildClientReport() {
   var yest    = getStats(yestStr, yestStr);
   var l7Cost  = getL7Cost(fmtDate(l7Start, tz), yestStr);
 
-  var budget   = getAccountBudgetRemaining();
-  var avgDaily = l7Cost / 7;
-  var daysLeft = (budget !== null && avgDaily > 0) ? Math.floor(budget / avgDaily) : null;
+  var avgDaily    = l7Cost / 7;
+  var budgetInfo  = getBudgetInfo(avgDaily);
 
   var d = yestDate;
   var dateStr = d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
@@ -99,12 +103,18 @@ function buildClientReport() {
   }
   msg += '</pre>';
 
-  if (budget !== null) {
-    msg += '\n💰 Budget left: ' + sym + fmtMoneyInt(budget);
-    if (daysLeft !== null) {
-      msg += ' (~' + daysLeft + ' days at current pace)';
-    }
+  if (budgetInfo) {
     msg += '\n';
+    if (budgetInfo.type === 'account') {
+      msg += '💰 Budget left: ' + sym + fmtMoneyInt(budgetInfo.remaining)
+        + ' (~' + budgetInfo.daysLeft + ' days at current pace)\n';
+    } else {
+      msg += '💰 Daily budget: ' + sym + fmtMoneyInt(budgetInfo.dailyTotal) + '\n';
+      if (avgDaily > 0) {
+        msg += '📊 Avg spend/day: ' + sym + fmtMoneyInt(avgDaily)
+          + ' (' + Math.round(avgDaily / budgetInfo.dailyTotal * 100) + '% utilization)\n';
+      }
+    }
   }
 
   return msg;
@@ -163,6 +173,48 @@ function getL7Cost(startDate, endDate) {
     }
   } catch (e) {
     Logger.log('L7 cost query error: ' + e.message);
+  }
+  return total;
+}
+
+// Returns budget info object or null
+// type='account': prepaid account budget with remaining + daysLeft
+// type='daily':   sum of campaign daily budgets
+function getBudgetInfo(avgDailySpend) {
+  var remaining = getAccountBudgetRemaining();
+  if (remaining !== null) {
+    return {
+      type:      'account',
+      remaining: remaining,
+      daysLeft:  avgDailySpend > 0 ? Math.floor(remaining / avgDailySpend) : null
+    };
+  }
+  var dailyTotal = getDailyBudgetTotal();
+  if (dailyTotal > 0) {
+    return { type: 'daily', dailyTotal: dailyTotal };
+  }
+  return null;
+}
+
+// Sum of unique campaign daily budgets (deduplicates shared budgets by budget ID)
+function getDailyBudgetTotal() {
+  var q = 'SELECT campaign_budget.id, campaign_budget.amount_micros '
+    + 'FROM campaign '
+    + "WHERE campaign.status = 'ENABLED'";
+  var seen  = {};
+  var total = 0;
+  try {
+    var report = AdsApp.search(q);
+    while (report.hasNext()) {
+      var r  = report.next();
+      var id = r.campaignBudget.id;
+      if (id && !seen[id]) {
+        seen[id] = true;
+        total += (r.campaignBudget.amountMicros || 0) / 1e6;
+      }
+    }
+  } catch (e) {
+    Logger.log('Daily budget query error: ' + e.message);
   }
   return total;
 }
