@@ -23,6 +23,10 @@ var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov',
 function main() {
   var ss    = SpreadsheetApp.openByUrl(config.spreadsheet_url);
   var sheet = ss.getSheetByName(config.clientsSheetName);
+  if (!sheet) {
+    Logger.log('❌ Sheet "' + config.clientsSheetName + '" not found. Check the sheet name in config.');
+    return;
+  }
   var rows  = sheet.getRange('A2:B').getValues().filter(function(r) { return r[0] !== ''; });
 
   rows.forEach(function(row) {
