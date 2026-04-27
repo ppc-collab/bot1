@@ -7,7 +7,7 @@
     geoPerformance · devicePerformance · scheduleByDay · scheduleByHour ·
     audiencePerformance · budgetPacingReport · landingPageReport ·
     performanceMaxSettings · performanceMaxStats ·
-    auctionInsightsCampaign · auctionInsightsKeyword
+    auctionInsightsCampaign · auctionInsightsKeyword (unavailable in Scripts API)
 */
 
 const config = {
@@ -38,8 +38,6 @@ function main() {
   setValues(getSheet(spreadsheet, 'landingPageReport'),       getLandingPageReport());
   setValues(getSheet(spreadsheet, 'performanceMaxSettings'),  getPerformanceMaxSettings());
   setValues(getSheet(spreadsheet, 'performanceMaxStats'),     getPerformanceMaxStats());
-  setValues(getSheet(spreadsheet, 'auctionInsightsCampaign'), getAuctionInsightsCampaign());
-  setValues(getSheet(spreadsheet, 'auctionInsightsKeyword'),  getAuctionInsightsKeyword());
 }
 
 // ─── 1. CHANGE HISTORY ────────────────────────────────────────────────────────
@@ -1022,120 +1020,6 @@ function getPerformanceMaxStats() {
       conv,
       round(clk > 0 ? (conv / clk) * 100 : 0),
       round(conv > 0 ? cost / conv : 0)
-    ]);
-  }
-
-  return report;
-}
-
-// ─── 18. AUCTION INSIGHTS — CAMPAIGN (Search only) ────────────────────────────
-
-function getAuctionInsightsCampaign() {
-  var query = `
-    SELECT
-      campaign.id,
-      campaign.name,
-      campaign.advertising_channel_type,
-      segments.auction_insight_domain,
-      metrics.auction_insight_search_impression_share,
-      metrics.auction_insight_search_outranking_share,
-      metrics.auction_insight_search_overlap_rate,
-      metrics.auction_insight_search_position_above_rate,
-      metrics.auction_insight_search_top_impression_percentage,
-      metrics.auction_insight_search_absolute_top_impression_percentage
-    FROM campaign
-    WHERE campaign.status != 'REMOVED'
-      AND campaign.advertising_channel_type = 'SEARCH'
-      AND segments.date DURING LAST_30_DAYS
-    ORDER BY campaign.name, segments.auction_insight_domain
-  `;
-
-  var rows = AdsApp.search(query);
-
-  var report = [[
-    'Account', 'Campaign ID', 'Campaign', 'Channel Type', 'Competitor Domain',
-    'Impression Share %', 'Top IS %', 'Abs Top IS %',
-    'Outranking Share %', 'Overlap Rate %', 'Position Above Rate %'
-  ]];
-
-  while (rows.hasNext()) {
-    var row = rows.next();
-    var m   = row.metrics;
-
-    report.push([
-      AdsApp.currentAccount().getName(),
-      row.campaign.id || '',
-      row.campaign.name || '',
-      row.campaign.advertisingChannelType || '',
-      row.segments.auctionInsightDomain || '',
-      round((m.auctionInsightSearchImpressionShare || 0) * 100),
-      round((m.auctionInsightSearchTopImpressionPercentage || 0) * 100),
-      round((m.auctionInsightSearchAbsoluteTopImpressionPercentage || 0) * 100),
-      round((m.auctionInsightSearchOutrankingShare || 0) * 100),
-      round((m.auctionInsightSearchOverlapRate || 0) * 100),
-      round((m.auctionInsightSearchPositionAboveRate || 0) * 100)
-    ]);
-  }
-
-  return report;
-}
-
-// ─── 19. AUCTION INSIGHTS — KEYWORD ───────────────────────────────────────────
-
-function getAuctionInsightsKeyword() {
-  var query = `
-    SELECT
-      campaign.id,
-      campaign.name,
-      ad_group.id,
-      ad_group.name,
-      campaign.status,
-      ad_group_criterion.keyword.text,
-      ad_group_criterion.keyword.match_type,
-      segments.auction_insight_domain,
-      metrics.auction_insight_search_impression_share,
-      metrics.auction_insight_search_outranking_share,
-      metrics.auction_insight_search_overlap_rate,
-      metrics.auction_insight_search_position_above_rate,
-      metrics.auction_insight_search_top_impression_percentage,
-      metrics.auction_insight_search_absolute_top_impression_percentage
-    FROM keyword_view
-    WHERE campaign.status != 'REMOVED'
-      AND ad_group.status != 'REMOVED'
-      AND ad_group_criterion.status != 'REMOVED'
-      AND segments.date DURING LAST_30_DAYS
-    ORDER BY campaign.name, ad_group.name, segments.auction_insight_domain
-    LIMIT 2000
-  `;
-
-  var rows = AdsApp.search(query);
-
-  var report = [[
-    'Account', 'Campaign ID', 'Campaign', 'Ad Group ID', 'Ad Group',
-    'Keyword', 'Match Type', 'Competitor Domain',
-    'Impression Share %', 'Top IS %', 'Abs Top IS %',
-    'Outranking Share %', 'Overlap Rate %', 'Position Above Rate %'
-  ]];
-
-  while (rows.hasNext()) {
-    var row = rows.next();
-    var m   = row.metrics;
-
-    report.push([
-      AdsApp.currentAccount().getName(),
-      row.campaign.id || '',
-      row.campaign.name || '',
-      row.adGroup.id || '',
-      row.adGroup.name || '',
-      row.adGroupCriterion.keyword.text || '',
-      row.adGroupCriterion.keyword.matchType || '',
-      row.segments.auctionInsightDomain || '',
-      round((m.auctionInsightSearchImpressionShare || 0) * 100),
-      round((m.auctionInsightSearchTopImpressionPercentage || 0) * 100),
-      round((m.auctionInsightSearchAbsoluteTopImpressionPercentage || 0) * 100),
-      round((m.auctionInsightSearchOutrankingShare || 0) * 100),
-      round((m.auctionInsightSearchOverlapRate || 0) * 100),
-      round((m.auctionInsightSearchPositionAboveRate || 0) * 100)
     ]);
   }
 
