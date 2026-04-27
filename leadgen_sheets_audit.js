@@ -514,7 +514,6 @@ function getGeoPerformance() {
     SELECT
       campaign.id,
       campaign.name,
-      campaign.status,
       geographic_view.country_criterion_id,
       geographic_view.location_type,
       metrics.impressions,
@@ -523,8 +522,7 @@ function getGeoPerformance() {
       metrics.conversions,
       metrics.conversions_value
     FROM geographic_view
-    WHERE campaign.status != 'REMOVED'
-      AND segments.date DURING LAST_30_DAYS
+    WHERE segments.date DURING LAST_30_DAYS
     ORDER BY metrics.clicks DESC
     LIMIT 2000
   `;
