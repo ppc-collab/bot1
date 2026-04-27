@@ -463,43 +463,38 @@ function getAdsPerformance() {
   return report;
 }
 
-// ─── 8. CONVERSION ACTIONS (daily) ───────────────────────────────────────────
+// ─── 8. CONVERSION ACTIONS (daily, segmented from customer) ──────────────────
+// metrics.conversions is not available FROM conversion_action directly —
+// must query FROM customer and segment by conversion_action_name.
 
 function getConversionActions() {
   var query = `
     SELECT
-      conversion_action.id,
-      conversion_action.name,
-      conversion_action.category,
-      conversion_action.type,
-      conversion_action.status,
-      conversion_action.counting_type,
       segments.date,
+      segments.conversion_action,
+      segments.conversion_action_name,
+      segments.conversion_action_category,
       metrics.conversions,
       metrics.all_conversions
-    FROM conversion_action
-    WHERE conversion_action.status = 'ENABLED'
-      AND segments.date DURING LAST_30_DAYS
-    ORDER BY conversion_action.name, segments.date
+    FROM customer
+    WHERE segments.date DURING LAST_30_DAYS
+    ORDER BY segments.date, segments.conversion_action_name
   `;
 
   var rows = AdsApp.search(query);
 
   var report = [[
-    'Date', 'Conversion Action ID', 'Conversion Action',
-    'Category', 'Type', 'Counting Type',
+    'Account', 'Date', 'Conversion Action', 'Category',
     'Conversions', 'All Conversions'
   ]];
 
   while (rows.hasNext()) {
     var row = rows.next();
     report.push([
+      AdsApp.currentAccount().getName(),
       row.segments.date || '',
-      row.conversionAction.id || '',
-      row.conversionAction.name || '',
-      row.conversionAction.category || '',
-      row.conversionAction.type || '',
-      row.conversionAction.countingType || '',
+      row.segments.conversionActionName || '',
+      row.segments.conversionActionCategory || '',
       row.metrics.conversions || 0,
       row.metrics.allConversions || 0
     ]);
