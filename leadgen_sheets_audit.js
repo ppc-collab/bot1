@@ -208,6 +208,7 @@ function getAdGroupStats() {
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       ad_group.id,
       ad_group.name,
       ad_group.status,
@@ -268,6 +269,7 @@ function getKeywordStats() {
       campaign.name,
       ad_group.id,
       ad_group.name,
+      campaign.status,
       ad_group_criterion.keyword.text,
       ad_group_criterion.keyword.match_type,
       ad_group_criterion.status,
@@ -340,6 +342,7 @@ function getSearchTermsReport() {
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       ad_group.id,
       ad_group.name,
       search_term_view.search_term,
@@ -401,6 +404,7 @@ function getAdsPerformance() {
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       ad_group.id,
       ad_group.name,
       ad_group_ad.ad.id,
@@ -510,6 +514,7 @@ function getGeoPerformance() {
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       geographic_view.country_criterion_id,
       geographic_view.location_type,
       metrics.impressions,
@@ -725,6 +730,7 @@ function getAudiencePerformance() {
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       ad_group.id,
       ad_group.name,
       ad_group_criterion.criterion_id,
@@ -845,6 +851,7 @@ function getLandingPageReport() {
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       campaign.advertising_channel_type,
       landing_page_view.unexpanded_final_url,
       metrics.impressions,
@@ -1084,6 +1091,7 @@ function getAuctionInsightsKeyword() {
       campaign.name,
       ad_group.id,
       ad_group.name,
+      campaign.status,
       ad_group_criterion.keyword.text,
       ad_group_criterion.keyword.match_type,
       segments.auction_insight_domain,
