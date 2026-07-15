@@ -1,13 +1,7 @@
 /*
-  Google Ads — Sheets Audit for Lead Generation / Service Accounts
 
-  Sheets written:
-    changeHistory · accountStats · campaignStats · adGroupStats ·
-    keywordStats · searchTermsReport · adsPerformance · conversionActions ·
-    geoPerformance · devicePerformance · scheduleByDay · scheduleByHour ·
-    audiencePerformance · budgetPacingReport · landingPageReport ·
-    performanceMaxSettings · performanceMaxStats ·
-    auctionInsightsCampaign · auctionInsightsKeyword (unavailable in Scripts API)
+
+
 */
 
 const config = {
@@ -21,29 +15,101 @@ function main() {
   var spreadsheet = getSpreadsheet(config.spreadsheet_url);
   MccApp.select(MccApp.accounts().withIds([config.ads_account_id]).get().next());
 
-  setValues(getSheet(spreadsheet, 'changeHistory'),           getAccountChangeHistory());
-  setValues(getSheet(spreadsheet, 'accountStats'),            getAccountStats());
-  setValues(getSheet(spreadsheet, 'campaignStats'),           getCampaignStats());
-  setValues(getSheet(spreadsheet, 'adGroupStats'),            getAdGroupStats());
-  setValues(getSheet(spreadsheet, 'keywordStats'),            getKeywordStats());
-  setValues(getSheet(spreadsheet, 'searchTermsReport'),       getSearchTermsReport());
-  setValues(getSheet(spreadsheet, 'adsPerformance'),          getAdsPerformance());
-  setValues(getSheet(spreadsheet, 'conversionActions'),       getConversionActions());
-  setValues(getSheet(spreadsheet, 'geoPerformance'),          getGeoPerformance());
-  setValues(getSheet(spreadsheet, 'devicePerformance'),       getDevicePerformance());
-  setValues(getSheet(spreadsheet, 'scheduleByDay'),           getScheduleByDay());
-  setValues(getSheet(spreadsheet, 'scheduleByHour'),          getScheduleByHour());
-  setValues(getSheet(spreadsheet, 'audiencePerformance'),     getAudiencePerformance());
-  setValues(getSheet(spreadsheet, 'budgetPacingReport'),      getBudgetPacingReport());
-  setValues(getSheet(spreadsheet, 'landingPageReport'),       getLandingPageReport());
-  setValues(getSheet(spreadsheet, 'performanceMaxSettings'),  getPerformanceMaxSettings());
-  setValues(getSheet(spreadsheet, 'performanceMaxStats'),     getPerformanceMaxStats());
+  try {
+    setValues(getSheet(spreadsheet, 'changeHistory'), getAccountChangeHistory());
+    Logger.log('changeHistory OK');
+  } catch (e) { Logger.log('changeHistory ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'accountStats'), getAccountStats());
+    Logger.log('accountStats OK');
+  } catch (e) { Logger.log('accountStats ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'campaignStats'), getCampaignStats());
+    Logger.log('campaignStats OK');
+  } catch (e) { Logger.log('campaignStats ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'adGroupStats'), getAdGroupStats());
+    Logger.log('adGroupStats OK');
+  } catch (e) { Logger.log('adGroupStats ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'keywordStats'), getKeywordStats());
+    Logger.log('keywordStats OK');
+  } catch (e) { Logger.log('keywordStats ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'searchTermsReport'), getSearchTermsReport());
+    Logger.log('searchTermsReport OK');
+  } catch (e) { Logger.log('searchTermsReport ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'adsPerformance'), getAdsPerformance());
+    Logger.log('adsPerformance OK');
+  } catch (e) { Logger.log('adsPerformance ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'conversionActions'), getConversionActions());
+    Logger.log('conversionActions OK');
+  } catch (e) { Logger.log('conversionActions ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'geoPerformance'), getGeoPerformance());
+    Logger.log('geoPerformance OK');
+  } catch (e) { Logger.log('geoPerformance ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'devicePerformance'), getDevicePerformance());
+    Logger.log('devicePerformance OK');
+  } catch (e) { Logger.log('devicePerformance ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'scheduleByDay'), getScheduleByDay());
+    Logger.log('scheduleByDay OK');
+  } catch (e) { Logger.log('scheduleByDay ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'scheduleByHour'), getScheduleByHour());
+    Logger.log('scheduleByHour OK');
+  } catch (e) { Logger.log('scheduleByHour ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'audiencePerformance'), getAudiencePerformance());
+    Logger.log('audiencePerformance OK');
+  } catch (e) { Logger.log('audiencePerformance ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'budgetPacingReport'), getBudgetPacingReport());
+    Logger.log('budgetPacingReport OK');
+  } catch (e) { Logger.log('budgetPacingReport ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'landingPageReport'), getLandingPageReport());
+    Logger.log('landingPageReport OK');
+  } catch (e) { Logger.log('landingPageReport ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'performanceMaxSettings'), getPerformanceMaxSettings());
+    Logger.log('performanceMaxSettings OK');
+  } catch (e) { Logger.log('performanceMaxSettings ERROR: ' + e); }
+
+  try {
+    setValues(getSheet(spreadsheet, 'performanceMaxStats'), getPerformanceMaxStats());
+    Logger.log('performanceMaxStats OK');
+  } catch (e) { Logger.log('performanceMaxStats ERROR: ' + e); }
 }
 
-// ─── 1. CHANGE HISTORY ────────────────────────────────────────────────────────
+// ─── 1. CHANGE HISTORY (last 29 days — API limit) ────────────────────────────
 
 function getAccountChangeHistory() {
-  var dateRange = getDateRange(29).split(',');
+  var today = new Date();
+  var endDate = new Date(today); endDate.setDate(today.getDate() - 1);
+  var startDate = new Date(today); startDate.setDate(today.getDate() - 29);
+  var tz = AdsApp.currentAccount().getTimeZone();
+  var start = Utilities.formatDate(startDate, tz, 'yyyy-MM-dd');
+  var end   = Utilities.formatDate(endDate,   tz, 'yyyy-MM-dd');
 
   var query = `
     SELECT
@@ -59,7 +125,7 @@ function getAccountChangeHistory() {
       change_event.resource_name,
       change_event.user_email
     FROM change_event
-    WHERE change_event.change_date_time BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
+    WHERE change_event.change_date_time BETWEEN '${start}' AND '${end}'
     ORDER BY change_event.change_date_time DESC
     LIMIT 1000
   `;
@@ -67,9 +133,9 @@ function getAccountChangeHistory() {
   var rows = AdsApp.search(query);
 
   var report = [[
-    'Date', 'User Email', 'Client Type', 'Campaign', 'Ad Group',
-    'Change Resource Type', 'Changed Fields', 'New Resource',
-    'Old Resource', 'Operation', 'Resource Name'
+    'date', 'user_email', 'client_type', 'campaign', 'ad_group',
+    'change_resource_type', 'changed_fields', 'new_resource',
+    'old_resource', 'resource_change_operation', 'resource_name'
   ]];
 
   while (rows.hasNext()) {
@@ -95,6 +161,8 @@ function getAccountChangeHistory() {
 // ─── 2. ACCOUNT STATS (daily) ─────────────────────────────────────────────────
 
 function getAccountStats() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       segments.date,
@@ -104,7 +172,7 @@ function getAccountStats() {
       metrics.conversions,
       metrics.conversions_value
     FROM customer
-    WHERE segments.date DURING LAST_30_DAYS
+    WHERE segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY segments.date
   `;
 
@@ -117,17 +185,16 @@ function getAccountStats() {
 
   while (rows.hasNext()) {
     var row = rows.next();
-    var imp   = row.metrics.impressions || 0;
-    var clk   = row.metrics.clicks || 0;
-    var cost  = (row.metrics.costMicros || 0) / 1e6;
-    var conv  = row.metrics.conversions || 0;
-    var val   = row.metrics.conversionsValue || 0;
+    var imp  = row.metrics.impressions || 0;
+    var clk  = row.metrics.clicks || 0;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
+    var conv = row.metrics.conversions || 0;
+    var val  = row.metrics.conversionsValue || 0;
 
     report.push([
       AdsApp.currentAccount().getName(),
       row.segments.date || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -145,6 +212,8 @@ function getAccountStats() {
 // ─── 3. CAMPAIGN STATS (daily) ────────────────────────────────────────────────
 
 function getCampaignStats() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
@@ -159,7 +228,7 @@ function getCampaignStats() {
       metrics.conversions_value
     FROM campaign
     WHERE campaign.status != 'REMOVED'
-      AND segments.date DURING LAST_30_DAYS
+      AND segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY campaign.name, segments.date
   `;
 
@@ -175,7 +244,7 @@ function getCampaignStats() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -185,8 +254,7 @@ function getCampaignStats() {
       row.campaign.name || '',
       row.campaign.status || '',
       row.campaign.advertisingChannelType || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -199,9 +267,11 @@ function getCampaignStats() {
   return report;
 }
 
-// ─── 4. AD GROUP STATS (aggregated, last 30 days) ────────────────────────────
+// ─── 4. AD GROUP STATS (aggregated) ──────────────────────────────────────────
 
 function getAdGroupStats() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
@@ -218,7 +288,7 @@ function getAdGroupStats() {
     FROM ad_group
     WHERE campaign.status != 'REMOVED'
       AND ad_group.status != 'REMOVED'
-      AND segments.date DURING LAST_30_DAYS
+      AND segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY campaign.name, ad_group.name
   `;
 
@@ -234,7 +304,7 @@ function getAdGroupStats() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -244,8 +314,7 @@ function getAdGroupStats() {
       row.adGroup.id || '',
       row.adGroup.name || '',
       row.adGroup.status || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -261,13 +330,15 @@ function getAdGroupStats() {
 // ─── 5. KEYWORD STATS (aggregated + Quality Score) ───────────────────────────
 
 function getKeywordStats() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       ad_group.id,
       ad_group.name,
-      campaign.status,
       ad_group_criterion.keyword.text,
       ad_group_criterion.keyword.match_type,
       ad_group_criterion.status,
@@ -284,7 +355,7 @@ function getKeywordStats() {
     WHERE campaign.status != 'REMOVED'
       AND ad_group.status != 'REMOVED'
       AND ad_group_criterion.status != 'REMOVED'
-      AND segments.date DURING LAST_30_DAYS
+      AND segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY metrics.clicks DESC
     LIMIT 2000
   `;
@@ -302,7 +373,7 @@ function getKeywordStats() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
     var qi   = row.adGroupCriterion.qualityInfo || {};
 
@@ -317,8 +388,7 @@ function getKeywordStats() {
       qi.creativeQualityScore || '',
       qi.postClickQualityScore || '',
       qi.searchPredictedCtr || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -334,7 +404,7 @@ function getKeywordStats() {
 // ─── 6. SEARCH TERMS REPORT (aggregated) ─────────────────────────────────────
 
 function getSearchTermsReport() {
-  var dateRange = getDateRange(29).split(',');
+  var dateRange = getDateRange(120).split(',');
 
   var query = `
     SELECT
@@ -370,7 +440,7 @@ function getSearchTermsReport() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -381,8 +451,7 @@ function getSearchTermsReport() {
       row.adGroup.name || '',
       row.searchTermView.searchTerm || '',
       row.searchTermView.status || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -398,6 +467,8 @@ function getSearchTermsReport() {
 // ─── 7. ADS PERFORMANCE (aggregated) ─────────────────────────────────────────
 
 function getAdsPerformance() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
@@ -418,7 +489,7 @@ function getAdsPerformance() {
     WHERE campaign.status != 'REMOVED'
       AND ad_group.status != 'REMOVED'
       AND ad_group_ad.status != 'REMOVED'
-      AND segments.date DURING LAST_30_DAYS
+      AND segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY metrics.clicks DESC
     LIMIT 1000
   `;
@@ -433,13 +504,12 @@ function getAdsPerformance() {
   ]];
 
   while (rows.hasNext()) {
-    var row     = rows.next();
-    var imp     = row.metrics.impressions || 0;
-    var clk     = row.metrics.clicks || 0;
-    var cost    = (row.metrics.costMicros || 0) / 1e6;
-    var conv    = row.metrics.conversions || 0;
-    var urls    = row.adGroupAd.ad.finalUrls;
-    var firstUrl = (urls && urls.length > 0) ? urls[0] : '';
+    var row  = rows.next();
+    var imp  = row.metrics.impressions || 0;
+    var clk  = row.metrics.clicks || 0;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
+    var conv = row.metrics.conversions || 0;
+    var urls = row.adGroupAd.ad.finalUrls;
 
     report.push([
       AdsApp.currentAccount().getName(),
@@ -449,10 +519,9 @@ function getAdsPerformance() {
       row.adGroup.name || '',
       row.adGroupAd.ad.id || '',
       row.adGroupAd.ad.type || '',
-      firstUrl,
+      (urls && urls.length > 0) ? urls[0] : '',
       row.adGroupAd.status || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -465,11 +534,11 @@ function getAdsPerformance() {
   return report;
 }
 
-// ─── 8. CONVERSION ACTIONS (daily, segmented from customer) ──────────────────
-// metrics.conversions is not available FROM conversion_action directly —
-// must query FROM customer and segment by conversion_action_name.
+// ─── 8. CONVERSION ACTIONS (daily) ───────────────────────────────────────────
 
 function getConversionActions() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       segments.date,
@@ -479,7 +548,7 @@ function getConversionActions() {
       metrics.conversions,
       metrics.all_conversions
     FROM customer
-    WHERE segments.date DURING LAST_30_DAYS
+    WHERE segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY segments.date, segments.conversion_action_name
   `;
 
@@ -508,6 +577,8 @@ function getConversionActions() {
 // ─── 9. GEO PERFORMANCE (aggregated) ─────────────────────────────────────────
 
 function getGeoPerformance() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
@@ -520,7 +591,7 @@ function getGeoPerformance() {
       metrics.conversions,
       metrics.conversions_value
     FROM geographic_view
-    WHERE segments.date DURING LAST_30_DAYS
+    WHERE segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY metrics.clicks DESC
     LIMIT 2000
   `;
@@ -537,7 +608,7 @@ function getGeoPerformance() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -546,8 +617,7 @@ function getGeoPerformance() {
       row.campaign.name || '',
       row.geographicView.locationType || '',
       row.geographicView.countryCriterionId || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -563,10 +633,13 @@ function getGeoPerformance() {
 // ─── 10. DEVICE PERFORMANCE (aggregated) ──────────────────────────────────────
 
 function getDevicePerformance() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       segments.device,
       metrics.impressions,
       metrics.clicks,
@@ -575,7 +648,7 @@ function getDevicePerformance() {
       metrics.conversions_value
     FROM campaign
     WHERE campaign.status != 'REMOVED'
-      AND segments.date DURING LAST_30_DAYS
+      AND segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY campaign.name, segments.device
   `;
 
@@ -591,7 +664,7 @@ function getDevicePerformance() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -599,8 +672,7 @@ function getDevicePerformance() {
       row.campaign.id || '',
       row.campaign.name || '',
       row.segments.device || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -616,10 +688,13 @@ function getDevicePerformance() {
 // ─── 11. SCHEDULE — BY DAY OF WEEK (aggregated) ───────────────────────────────
 
 function getScheduleByDay() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       segments.day_of_week,
       metrics.impressions,
       metrics.clicks,
@@ -628,7 +703,7 @@ function getScheduleByDay() {
       metrics.conversions_value
     FROM campaign
     WHERE campaign.status != 'REMOVED'
-      AND segments.date DURING LAST_30_DAYS
+      AND segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY campaign.name, segments.day_of_week
   `;
 
@@ -644,7 +719,7 @@ function getScheduleByDay() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -652,8 +727,7 @@ function getScheduleByDay() {
       row.campaign.id || '',
       row.campaign.name || '',
       row.segments.dayOfWeek || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -669,10 +743,13 @@ function getScheduleByDay() {
 // ─── 12. SCHEDULE — BY HOUR OF DAY (aggregated) ───────────────────────────────
 
 function getScheduleByHour() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
       campaign.name,
+      campaign.status,
       segments.hour,
       metrics.impressions,
       metrics.clicks,
@@ -681,7 +758,7 @@ function getScheduleByHour() {
       metrics.conversions_value
     FROM campaign
     WHERE campaign.status != 'REMOVED'
-      AND segments.date DURING LAST_30_DAYS
+      AND segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY campaign.name, segments.hour
   `;
 
@@ -697,7 +774,7 @@ function getScheduleByHour() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -705,8 +782,7 @@ function getScheduleByHour() {
       row.campaign.id || '',
       row.campaign.name || '',
       row.segments.hour || 0,
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -722,6 +798,8 @@ function getScheduleByHour() {
 // ─── 13. AUDIENCE PERFORMANCE (aggregated) ────────────────────────────────────
 
 function getAudiencePerformance() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
@@ -741,7 +819,7 @@ function getAudiencePerformance() {
     WHERE campaign.status != 'REMOVED'
       AND ad_group.status != 'REMOVED'
       AND ad_group_criterion.status NOT IN ('REMOVED', 'PAUSED')
-      AND segments.date DURING LAST_30_DAYS
+      AND segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY metrics.clicks DESC
     LIMIT 1000
   `;
@@ -759,7 +837,7 @@ function getAudiencePerformance() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -771,8 +849,7 @@ function getAudiencePerformance() {
       row.adGroupCriterion.criterionId || '',
       row.adGroupCriterion.type || '',
       row.adGroupCriterion.bidModifier || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -788,7 +865,7 @@ function getAudiencePerformance() {
 // ─── 14. BUDGET PACING REPORT (daily) ────────────────────────────────────────
 
 function getBudgetPacingReport() {
-  var dateRange = getDateRange(29).split(',');
+  var dateRange = getDateRange(120).split(',');
 
   var query = `
     SELECT
@@ -816,8 +893,8 @@ function getBudgetPacingReport() {
 
   while (rows.hasNext()) {
     var row    = rows.next();
-    var budget = row.campaignBudget.amountMicros ? row.campaignBudget.amountMicros / 1e6 : 0;
-    var spend  = row.metrics.costMicros ? row.metrics.costMicros / 1e6 : 0;
+    var budget = row.campaignBudget.amountMicros ? row.campaignBudget.amountMicros / 1000000 : 0;
+    var spend  = row.metrics.costMicros ? row.metrics.costMicros / 1000000 : 0;
     var conv   = row.metrics.conversions || 0;
 
     report.push([
@@ -841,7 +918,7 @@ function getBudgetPacingReport() {
 // ─── 15. LANDING PAGE REPORT (aggregated, all campaign types) ─────────────────
 
 function getLandingPageReport() {
-  var dateRange = getDateRange(29).split(',');
+  var dateRange = getDateRange(120).split(',');
 
   var query = `
     SELECT
@@ -874,7 +951,7 @@ function getLandingPageReport() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -883,8 +960,7 @@ function getLandingPageReport() {
       row.campaign.name || '',
       row.campaign.advertisingChannelType || '',
       row.landingPageView.unexpandedFinalUrl || '',
-      imp,
-      clk,
+      imp, clk,
       round((row.metrics.ctr || 0) * 100),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -944,7 +1020,7 @@ function getPerformanceMaxSettings() {
       (row.campaign.targetRoas && row.campaign.targetRoas.targetRoas) ||
       (row.campaign.maximizeConversionValue && row.campaign.maximizeConversionValue.targetRoas) || 0;
     var budget = (row.campaignBudget && row.campaignBudget.amountMicros)
-      ? row.campaignBudget.amountMicros / 1e6 : 0;
+      ? row.campaignBudget.amountMicros / 1000000 : 0;
 
     report.push([
       AdsApp.currentAccount().getName(),
@@ -959,7 +1035,7 @@ function getPerformanceMaxSettings() {
       budget,
       (row.biddingStrategy && row.biddingStrategy.name) || '',
       (row.biddingStrategy && row.biddingStrategy.type) || '',
-      targetCpa ? targetCpa / 1e6 : '',
+      targetCpa ? targetCpa / 1000000 : '',
       targetRoas || '',
       row.campaign.finalUrlSuffix || '',
       String(row.campaign.brandGuidelinesEnabled || false),
@@ -973,6 +1049,8 @@ function getPerformanceMaxSettings() {
 // ─── 17. PMAX STATS (daily) ───────────────────────────────────────────────────
 
 function getPerformanceMaxStats() {
+  var dateRange = getDateRange(120).split(',');
+
   var query = `
     SELECT
       campaign.id,
@@ -987,7 +1065,7 @@ function getPerformanceMaxStats() {
     FROM campaign
     WHERE campaign.advertising_channel_type = 'PERFORMANCE_MAX'
       AND campaign.status = 'ENABLED'
-      AND segments.date DURING LAST_30_DAYS
+      AND segments.date BETWEEN '${dateRange[0]}' AND '${dateRange[1]}'
     ORDER BY campaign.name, segments.date
   `;
 
@@ -1003,7 +1081,7 @@ function getPerformanceMaxStats() {
     var row = rows.next();
     var imp  = row.metrics.impressions || 0;
     var clk  = row.metrics.clicks || 0;
-    var cost = (row.metrics.costMicros || 0) / 1e6;
+    var cost = (row.metrics.costMicros || 0) / 1000000;
     var conv = row.metrics.conversions || 0;
 
     report.push([
@@ -1012,8 +1090,7 @@ function getPerformanceMaxStats() {
       row.campaign.id || '',
       row.campaign.name || '',
       row.campaign.status || '',
-      imp,
-      clk,
+      imp, clk,
       round(imp > 0 ? (clk / imp) * 100 : 0),
       round(cost),
       round(clk > 0 ? cost / clk : 0),
@@ -1037,8 +1114,9 @@ function getSheet(spreadsheet, name) {
 }
 
 function setValues(sheet, values) {
+  sheet.clear();
+  if (!values || !values.length || !values[0] || !values[0].length) return;
   sheet
-    .clear()
     .getRange(1, 1, values.length, values[0].length)
     .setValues(values);
 }
